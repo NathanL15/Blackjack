@@ -212,6 +212,10 @@ class GameManager {
         this.disableBetting();
         this.statusEl.textContent = 'Dealing cards...';
         
+        // Clear previous cards
+        this.playerCardsEl.innerHTML = '';
+        this.dealerCardsEl.innerHTML = '';
+        
         // Reset hands
         this.playerHand.clear();
         this.dealerHand.clear();
@@ -243,11 +247,30 @@ class GameManager {
         const card = this.deck.drawCard();
         hand.addCard(card);
 
-        this.updateDisplay();
+        // Only add the new card with animation
+        this.addNewCardToDisplay(hand, card, hand === this.dealerHand);
 
         setTimeout(() => {
             this.dealCardsAnimated(cardsToDeal, index + 1, callback);
         }, this.animationSpeed);
+    }
+
+    addNewCardToDisplay(hand, newCard, isDealer) {
+        const container = isDealer ? this.dealerCardsEl : this.playerCardsEl;
+        const cardIndex = hand.cards.length - 1;
+        const hideCard = isDealer && this.dealerHidden && cardIndex === 1;
+        
+        const cardEl = this.createCardElement(newCard, hideCard);
+        cardEl.classList.add('new-card'); // Add animation class
+        container.appendChild(cardEl);
+
+        // Update hand value
+        this.updateHandValue(hand, isDealer);
+
+        // Remove animation class after animation completes
+        setTimeout(() => {
+            cardEl.classList.remove('new-card');
+        }, 500);
     }
 
     checkInitialBlackjack() {
@@ -272,7 +295,9 @@ class GameManager {
 
         const card = this.deck.drawCard();
         this.playerHand.addCard(card);
-        this.updateDisplay();
+        
+        // Add only the new card with animation
+        this.addNewCardToDisplay(this.playerHand, card, false);
 
         setTimeout(() => this.checkPlayerBust(), this.animationSpeed);
     }
@@ -292,16 +317,31 @@ class GameManager {
         this.disableButtons();
         this.dealerHidden = false;
         this.statusEl.textContent = "Dealer's turn...";
-        this.updateDisplay();
+        
+        // Reveal dealer's hidden card
+        this.revealDealerCard();
 
         setTimeout(() => this.dealerPlay(), this.animationSpeed);
+    }
+
+    revealDealerCard() {
+        // Update the hidden card to show its actual value
+        const dealerCards = this.dealerCardsEl.children;
+        if (dealerCards.length > 1) {
+            const hiddenCard = dealerCards[1];
+            const card = this.dealerHand.cards[1];
+            this.updateCardDisplay(hiddenCard, card);
+        }
+        this.updateHandValue(this.dealerHand, true);
     }
 
     dealerPlay() {
         if (this.dealerHand.getValue() < 17) {
             const card = this.deck.drawCard();
             this.dealerHand.addCard(card);
-            this.updateDisplay();
+            
+            // Add only the new card with animation
+            this.addNewCardToDisplay(this.dealerHand, card, true);
 
             setTimeout(() => this.dealerPlay(), this.animationSpeed);
         } else {
@@ -357,7 +397,12 @@ class GameManager {
         this.dealerHidden = true;
         this.currentBet = 0;
 
-        this.updateDisplay();
+        // Clear card displays
+        this.playerCardsEl.innerHTML = '';
+        this.dealerCardsEl.innerHTML = '';
+        this.updateHandValue(this.playerHand, false);
+        this.updateHandValue(this.dealerHand, true);
+        
         this.updateMoneyDisplay();
         this.enableBetting();
         this.disableButtons();
@@ -366,15 +411,39 @@ class GameManager {
 
     updateDisplay() {
         this.drawHand(this.playerCardsEl, this.playerHand);
-        this.playerValueEl.textContent = `Value: ${this.playerHand.getValue()}`;
+        this.updateHandValue(this.playerHand, false);
 
         if (this.dealerHidden && this.dealerHand.cards.length > 0) {
             this.drawHand(this.dealerCardsEl, this.dealerHand, true);
             this.dealerValueEl.textContent = 'Value: ?';
         } else {
             this.drawHand(this.dealerCardsEl, this.dealerHand);
-            this.dealerValueEl.textContent = `Value: ${this.dealerHand.getValue()}`;
+            this.updateHandValue(this.dealerHand, true);
         }
+    }
+
+    updateHandValue(hand, isDealer) {
+        const valueEl = isDealer ? this.dealerValueEl : this.playerValueEl;
+        if (isDealer && this.dealerHidden && hand.cards.length > 0) {
+            valueEl.textContent = 'Value: ?';
+        } else {
+            valueEl.textContent = `Value: ${hand.getValue()}`;
+        }
+    }
+
+    updateCardDisplay(cardEl, card) {
+        cardEl.className = `card ${card.getColor()}`;
+        cardEl.innerHTML = `
+            <div class="card-top">
+                <div class="card-rank">${card.rank}</div>
+                <div class="card-suit">${card.suit}</div>
+            </div>
+            <div class="card-center">${card.suit}</div>
+            <div class="card-bottom">
+                <div class="card-rank">${card.rank}</div>
+                <div class="card-suit">${card.suit}</div>
+            </div>
+        `;
     }
 
     drawHand(container, hand, hideSecond = false) {
