@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Blackjack</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>♠ BLACKJACK ♥</h1>
+        </div>
+
+        <!-- Balance and Betting -->
+        <div class="money-section">
+            <div class="balance">
+                <span id="balance">Balance: $1000</span>
+            </div>
+            <div class="betting">
+                <label>Bet: $</label>
+                <input type="number" id="bet-input" value="50" min="1">
+                <div class="bet-buttons">
+                    <button class="bet-btn" data-amount="50">$50</button>
+                    <button class="bet-btn" data-amount="100">$100</button>
+                    <button class="bet-btn" data-amount="250">$250</button>
+                    <button class="bet-btn" data-amount="all">All-In</button>
+                </div>
+            </div>
+            <div class="current-bet">
+                <span id="current-bet"></span>
+            </div>
+        </div>
+
+        <!-- Dealer Section -->
+        <div class="dealer-section">
+            <h3>Dealer</h3>
+            <div class="cards-area" id="dealer-cards"></div>
+            <div class="hand-value" id="dealer-value">Value: 0</div>
+        </div>
+
+        <!-- Player Section -->
+        <div class="player-section">
+            <h3>Player</h3>
+            <div class="cards-area" id="player-cards"></div>
+            <div class="hand-value" id="player-value">Value: 0</div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="controls">
+            <button id="deal-btn" class="control-btn deal">Deal</button>
+            <button id="hit-btn" class="control-btn hit" disabled>Hit</button>
+            <button id="stand-btn" class="control-btn stand" disabled>Stand</button>
+        </div>
+
+        <!-- Status Messages -->
+        <div class="status">
+            <div id="game-status">Place your bet and click Deal to start!</div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
